@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>안화고등학교 수강신청 시뮬레이션</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f5f5f5; min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+
+
+const COURSES = {
+  g2: {
+    s1: {
+      "사회": [
+        { id: "g2s1_sa1", name: "세계시민과 지리", cr: 3 },
+        { id: "g2s1_sa2", name: "윤리와 사상", cr: 3 },
+        { id: "g2s1_sa3", name: "세계사", cr: 3 },
+        { id: "g2s1_sa4", name: "사회와 문화", cr: 3 },
+        { id: "g2s1_sa5", name: "정치", cr: 3 },
+      ],
+      "과학": [
+        { id: "g2s1_sc1", name: "물리학", cr: 3 },
+        { id: "g2s1_sc2", name: "화학", cr: 3 },
+        { id: "g2s1_sc3", name: "생명과학", cr: 3 },
+        { id: "g2s1_sc4", name: "지구과학", cr: 3 },
+      ],
+      "기초": [
+        { id: "g2s1_k1", name: "독서 토론과 글쓰기", cr: 3 },
+        { id: "g2s1_k2", name: "매체 의사소통", cr: 3 },
+        { id: "g2s1_k3", name: "기하", cr: 3 },
+        { id: "g2s1_k4", name: "실용 통계", cr: 3 },
+        { id: "g2s1_k5", name: "세계 문화와 영어", cr: 3 },
+        { id: "g2s1_k6", name: "영어 발표와 토론", cr: 3 },
+      ],
+      "제2외국어/한문": [
+        { id: "g2s1_f1", name: "중국어", cr: 3 },
+        { id: "g2s1_f2", name: "일본어", cr: 3 },
+        { id: "g2s1_f3", name: "한문", cr: 3 },
+      ],
+    },
+    s2: {
+      "사회": [
+        { id: "g2s2_sa1", name: "한국지리 탐구", cr: 3 },
+        { id: "g2s2_sa2", name: "현대사회와 윤리", cr: 3 },
+        { id: "g2s2_sa3", name: "동아시아 역사 기행", cr: 3 },
+        { id: "g2s2_sa4", name: "법과 사회", cr: 3 },
+        { id: "g2s2_sa5", name: "경제", cr: 3 },
+      ],
+      "과학": [
+        { id: "g2s2_sc1", name: "역학과 에너지", cr: 3 },
+        { id: "g2s2_sc2", name: "물질과 에너지", cr: 3 },
+        { id: "g2s2_sc3", name: "세포와 물질대사", cr: 3 },
+        { id: "g2s2_sc4", name: "지구시스템과학", cr: 3 },
+      ],
+      "기초": [
+        { id: "g2s2_k1", name: "문학과 영상", cr: 3 },
+        { id: "g2s2_k2", name: "직무 의사소통", cr: 3 },
+        { id: "g2s2_k3", name: "수학과제 탐구", cr: 3 },
+        { id: "g2s2_k4", name: "인공지능 수학", cr: 3 },
+        { id: "g2s2_k5", name: "심화 영어", cr: 3 },
+        { id: "g2s2_k6", name: "미디어 영어", cr: 3 },
+      ],
+      "제2외국어/한문": [
+        { id: "g2s2_f1", name: "중국어 회화", cr: 3 },
+        { id: "g2s2_f2", name: "일본어 회화", cr: 3 },
+        { id: "g2s2_f3", name: "한문 고전 읽기", cr: 3 },
+      ],
+    },
+    required: { s1:"문학(4), 대수(4), 영어Ⅰ(4), 스포츠 생활1(2)", s2:"독서와 작문(4), 미적분Ⅰ(4), 영어Ⅱ(4), 스포츠 생활2(2)", s1cr:14, s2cr:14 },
+    rules: { "사회+과학":{pick:3,label:"택3"}, "기초":{pick:1,label:"택1"}, "제2외국어/한문":{pick:1,label:"택1"} },
+    targetElective: 15,
+  },
+  g3: {
+    s1: {
+      "사회": [
+        { id: "g3s1_sa1", name: "도시의 미래 탐구", cr: 3 },
+        { id: "g3s1_sa2", name: "윤리문제 탐구", cr: 3 },
+        { id: "g3s1_sa3", name: "역사로 탐구하는 현대 세계", cr: 3 },
+        { id: "g3s1_sa4", name: "사회문제 탐구", cr: 3 },
+      ],
+      "과학": [
+        { id: "g3s1_sc1", name: "전자기와 양자", cr: 3 },
+        { id: "g3s1_sc2", name: "화학 반응의 세계", cr: 3 },
+        { id: "g3s1_sc3", name: "생물의 유전", cr: 3 },
+        { id: "g3s1_sc4", name: "행성우주과학", cr: 3 },
+      ],
+      "기술·가정/정보/제2외국어/한문/교양": [
+        { id: "g3s1_x1", name: "중국 문화", cr: 3 },
+        { id: "g3s1_x2", name: "일본 문화", cr: 3 },
+        { id: "g3s1_x3", name: "창의 공학 설계", cr: 3 },
+        { id: "g3s1_x4", name: "인공지능 기초", cr: 3 },
+        { id: "g3s1_x5", name: "미적분Ⅱ", cr: 3 },
+        { id: "g3s1_x6", name: "언어생활과 한자", cr: 3 },
+      ],
+      "예술": [
+        { id: "g3s1_a1", name: "음악 감상과 비평", cr: 3 },
+        { id: "g3s1_a2", name: "미술 감상과 비평", cr: 3 },
+      ],
+      "교양(P/F)": [
+        { id: "g3s1_p1", name: "생태와 환경", cr: 2 },
+        { id: "g3s1_p2", name: "인간과 철학", cr: 2 },
+        { id: "g3s1_p3", name: "논리와 사고", cr: 2 },
+        { id: "g3s1_p4", name: "교육의 이해", cr: 2 },
+        { id: "g3s1_p5", name: "삶과 종교", cr: 2 },
+        { id: "g3s1_p6", name: "보건", cr: 2 },
+        { id: "g3s1_p7", name: "인간과 경제활동", cr: 2 },
+        { id: "g3s1_p8", name: "논술", cr: 2 },
+        { id: "g3s1_p9", name: "음악과 미디어", cr: 2 },
+        { id: "g3s1_p10", name: "미술과 매체", cr: 2 },
+      ],
+    },
+    s2: {
+      "사회": [
+        { id: "g3s2_sa1", name: "여행지리", cr: 3 },
+        { id: "g3s2_sa2", name: "인문학과 윤리", cr: 3 },
+        { id: "g3s2_sa3", name: "국제 관계의 이해", cr: 3 },
+        { id: "g3s2_sa4", name: "금융과 경제생활", cr: 3 },
+      ],
+      "과학": [
+        { id: "g3s2_sc1", name: "과학의 역사와 문화", cr: 3 },
+        { id: "g3s2_sc2", name: "기후변화와 환경생태", cr: 3 },
+        { id: "g3s2_sc3", name: "융합과학 탐구", cr: 3 },
+      ],
+      "기술·가정/정보/제2외국어/한문/교양": [
+        { id: "g3s2_x1", name: "심화 중국어", cr: 3 },
+        { id: "g3s2_x2", name: "심화 일본어", cr: 3 },
+        { id: "g3s2_x3", name: "로봇과 공학세계", cr: 3 },
+        { id: "g3s2_x4", name: "데이터 과학", cr: 3 },
+        { id: "g3s2_x6", name: "언어생활과 한자", cr: 3 },
+        { id: "g3s2_x7", name: "인간과 심리", cr: 3 },
+      ],
+      "예술": [
+        { id: "g3s2_a1", name: "음악 연주와 창작", cr: 3 },
+        { id: "g3s2_a2", name: "미술 창작", cr: 3 },
+      ],
+      "교양(P/F)": [
+        { id: "g3s2_p1", name: "생태와 환경", cr: 2 },
+        { id: "g3s2_p2", name: "인간과 철학", cr: 2 },
+        { id: "g3s2_p3", name: "논리와 사고", cr: 2 },
+        { id: "g3s2_p4", name: "교육의 이해", cr: 2 },
+        { id: "g3s2_p5", name: "삶과 종교", cr: 2 },
+        { id: "g3s2_p6", name: "보건", cr: 2 },
+        { id: "g3s2_p7", name: "인간과 경제활동", cr: 2 },
+        { id: "g3s2_p8", name: "논술", cr: 2 },
+        { id: "g3s2_p9", name: "음악과 미디어", cr: 2 },
+        { id: "g3s2_p10", name: "미술과 매체", cr: 2 },
+      ],
+    },
+    required: { s1:"화법과 언어(4), 확률과 통계(4), 영어 독해와 작문(3), 스포츠 문화(1)", s2:"주제 탐구 독서(4), 경제 수학(3), 심화 영어 독해와 작문(4), 스포츠 과학(1)", s1cr:12, s2cr:12 },
+    rules: { "사회+과학":{pick:3,label:"택3"}, "기술·가정/정보/제2외국어/한문/교양":{pick:1,label:"택1"}, "예술":{pick:1,label:"택1"}, "교양(P/F)":{pick:1,label:"택1"} },
+    targetElective: 17,
+  },
+};
+
+// Prereqs: string=single, array=OR. Only 2학년 has prereqs now.
+const PREREQS = {
+  g2s2_sa1:"g2s1_sa1", g2s2_sa2:"g2s1_sa2", g2s2_sa3:"g2s1_sa3",
+  g2s2_sa4:["g2s1_sa4","g2s1_sa5"], g2s2_sa5:["g2s1_sa4","g2s1_sa5"],
+  g2s2_sc1:"g2s1_sc1", g2s2_sc2:"g2s1_sc2", g2s2_sc3:"g2s1_sc3", g2s2_sc4:"g2s1_sc4",
+  g2s2_k1:"g2s1_k1", g2s2_k2:"g2s1_k2", g2s2_k3:"g2s1_k3",
+  g2s2_k4:"g2s1_k4", g2s2_k5:"g2s1_k5", g2s2_k6:"g2s1_k6",
+  g2s2_f1:"g2s1_f1", g2s2_f2:"g2s1_f2", g2s2_f3:"g2s1_f3",
+  // 3학년 교과간 prereqs
+  g3s2_x1:"g3s1_x1", g3s2_x2:"g3s1_x2", g3s2_x3:"g3s1_x3", g3s2_x4:"g3s1_x4",
+  // 3학년 예술 forced pairing
+  g3s2_a1:"g3s1_a1", g3s2_a2:"g3s1_a2",
+};
+
+// Exclusions: if key is selected, value cannot be selected (same course across semesters)
+const EXCLUDES = {
+  g3s1_x6:"g3s2_x6", g3s2_x6:"g3s1_x6",
+  g3s1_p1:"g3s2_p1", g3s2_p1:"g3s1_p1",
+  g3s1_p2:"g3s2_p2", g3s2_p2:"g3s1_p2",
+  g3s1_p3:"g3s2_p3", g3s2_p3:"g3s1_p3",
+  g3s1_p4:"g3s2_p4", g3s2_p4:"g3s1_p4",
+  g3s1_p5:"g3s2_p5", g3s2_p5:"g3s1_p5",
+  g3s1_p6:"g3s2_p6", g3s2_p6:"g3s1_p6",
+  g3s1_p7:"g3s2_p7", g3s2_p7:"g3s1_p7",
+  g3s1_p8:"g3s2_p8", g3s2_p8:"g3s1_p8",
+  g3s1_p9:"g3s2_p9", g3s2_p9:"g3s1_p9",
+  g3s1_p10:"g3s2_p10", g3s2_p10:"g3s1_p10",
+};
+
+// 3학년 예술 forced: if 1학기 art selected, 2학기 counterpart is REQUIRED
+const ART_FORCE = { g3s1_a1:"g3s2_a1", g3s1_a2:"g3s2_a2" };
+
+const NM={};
+Object.values(COURSES).forEach(g=>["s1","s2"].forEach(s=>Object.values(g[s]).forEach(cs=>cs.forEach(c=>{NM[c.id]=c.name}))));
+
+function pList(cid){const p=PREREQS[cid];return !p?null:Array.isArray(p)?p:[p];}
+function pOk(cid,sels){const l=pList(cid);return !l||l.some(pid=>sels[pid]);}
+function pTxt(cid){const l=pList(cid);return l?l.map(pid=>NM[pid]).join(" 또는 "):null;}
+function isExcluded(cid,sels){const ex=EXCLUDES[cid];return ex&&sels[ex];}
+function catGrp(cn){return cn==="사회"||cn==="과학"?"사회+과학":cn;}
+
+function App(){
+  const [tab,setTab]=useState("g2");
+  const [sel,setSel]=useState({});
+  const [showG2,setShowG2]=useState(false);
+  const toggle=id=>{
+    // If toggling ON a g3 1학기 art, auto-select 2학기 counterpart
+    const next={...sel,[id]:!sel[id]};
+    if(next[id]&&ART_FORCE[id]){next[ART_FORCE[id]]=true;}
+    // If toggling OFF a g3 1학기 art, auto-deselect 2학기 counterpart
+    if(!next[id]&&ART_FORCE[id]){next[ART_FORCE[id]]=false;}
+    setSel(next);
+  };
+  const byCat=(g,s,cat)=>(COURSES[g][s][cat]||[]).filter(c=>sel[c.id]);
+
+  const vld=useMemo(()=>{
+    const err=[],warn=[],inf=[];
+    ["g2","g3"].forEach(grade=>{
+      const gl=grade==="g2"?"2학년":"3학년",gd=COURSES[grade];
+      ["s1","s2"].forEach(sem=>{
+        const pf=gl+" "+(sem==="s1"?"1학기":"2학기");
+        const gc={};
+        Object.entries(gd[sem]).forEach(([cn,cs])=>{const g=catGrp(cn);gc[g]=(gc[g]||0)+cs.filter(c=>sel[c.id]).length;});
+        Object.entries(gd.rules).forEach(([g,r])=>{const n=gc[g]||0;if(n>0&&n!==r.pick)err.push(pf+": "+g+"에서 "+r.pick+"개 선택 필요 (현재 "+n+"개)");});
+        let el=0;Object.values(gd[sem]).forEach(cs=>cs.forEach(c=>{if(sel[c.id])el+=c.cr}));
+        const rq=sem==="s1"?gd.required.s1cr:gd.required.s2cr;
+        if(el>0&&el!==gd.targetElective)err.push(pf+": 선택 "+gd.targetElective+"학점 필요 (현재 "+el+"학점)");
+        if(el>0)inf.push(pf+": 필수"+rq+" + 선택"+el+" = "+(rq+el)+"학점");
+        if(sem==="s2")Object.values(gd.s2).forEach(cs=>cs.forEach(c=>{
+          if(sel[c.id]&&!pOk(c.id,sel))err.push(pf+': "'+c.name+'" 선이수 필요: "'+pTxt(c.id)+'"');
+        }));
+      });
+    });
+    // Exclusion validation
+    Object.entries(EXCLUDES).forEach(([a,b])=>{
+      if(sel[a]&&sel[b]&&a<b){
+        err.push('"'+NM[a]+'" 동일 과목을 양 학기에 중복 수강할 수 없습니다');
+      }
+    });
+    // Art forced pairing validation
+    Object.entries(ART_FORCE).forEach(([s1id,s2id])=>{
+      if(sel[s1id]&&!sel[s2id])err.push('"'+NM[s1id]+'" 선택 시 2학기 "'+NM[s2id]+'" 필수');
+    });
+    // Cross-grade social/science balance
+    const g2S=[...byCat("g2","s1","사회"),...byCat("g2","s2","사회")],g2C=[...byCat("g2","s1","과학"),...byCat("g2","s2","과학")];
+    const g3S=[...byCat("g3","s1","사회"),...byCat("g3","s2","사회")],g3C=[...byCat("g3","s1","과학"),...byCat("g3","s2","과학")];
+    const g2A=g2S.length+g2C.length>0,g3A=g3S.length+g3C.length>0;
+    if(g2A&&g2C.length===0&&g2S.length>0){if(g3A&&g3C.length===0)err.push("2학년 사회만 선택 → 3학년 과학 1개 이상 필수");else if(!g3A)warn.push("2학년 사회만 선택 중 → 3학년에서 과학 필수");}
+    if(g2A&&g2S.length===0&&g2C.length>0){if(g3A&&g3S.length===0)err.push("2학년 과학만 선택 → 3학년 사회 1개 이상 필수");else if(!g3A)warn.push("2학년 과학만 선택 중 → 3학년에서 사회 필수");}
+    // Credit summary
+    const allSoc=[...byCat("g2","s1","사회"),...byCat("g2","s2","사회"),...byCat("g3","s1","사회"),...byCat("g3","s2","사회")];
+    const allSci=[...byCat("g2","s1","과학"),...byCat("g2","s2","과학"),...byCat("g3","s1","과학"),...byCat("g3","s2","과학")];
+    const socCr=allSoc.reduce((a,c)=>a+c.cr,0),sciCr=allSci.reduce((a,c)=>a+c.cr,0);
+    if(socCr>0||sciCr>0)inf.push("사회 이수학점: "+socCr+"학점 / 과학 이수학점: "+sciCr+"학점 (각 8학점 이상 필수)");
+    if(socCr>0&&socCr<8&&(g2A||g3A))warn.push("사회 이수학점 부족: 현재 "+socCr+"/8학점");
+    if(sciCr>0&&sciCr<8&&(g2A||g3A))warn.push("과학 이수학점 부족: 현재 "+sciCr+"/8학점");
+    return {err,warn,inf};
+  },[sel]);
+
+  const gd=COURSES[tab],rules=gd.rules;
+  const grpN=(sem,grp)=>{let n=0;Object.entries(gd[sem]).forEach(([cn,cs])=>{if(catGrp(cn)===grp)n+=cs.filter(x=>sel[x.id]).length});return n;};
+
+  const Sem=({sem,label})=>(
+    <div style={{flex:1,minWidth:0}}>
+      <div style={{background:"#2d5016",color:"#fff",padding:"10px 14px",fontWeight:700,fontSize:14,textAlign:"center",borderRadius:"8px 8px 0 0"}}>{label}</div>
+      <div style={{background:"#f0f7e6",padding:"10px 14px",borderBottom:"1px solid #c5d6a8",fontSize:12,color:"#456428"}}>
+        <div style={{fontWeight:700,marginBottom:4,fontSize:11,opacity:0.7}}>필수 ({sem==="s1"?gd.required.s1cr:gd.required.s2cr}학점)</div>
+        {sem==="s1"?gd.required.s1:gd.required.s2}
+      </div>
+      {Object.entries(gd[sem]).map(([cn,courses])=>{
+        const grp=catGrp(cn),rule=rules[grp],gc=grpN(sem,grp),full=gc>=rule.pick,showTag=cn==="사회"||grp===cn;
+        return(
+          <div key={cn} style={{borderBottom:"1px solid #e8e8e8"}}>
+            {showTag&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 14px",background:"#f8f9fa",borderBottom:"1px solid #eee"}}>
+              <span style={{fontWeight:700,fontSize:12,color:"#2d5016"}}>{grp==="사회+과학"?"사회 / 과학":grp}</span>
+              <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,background:gc===rule.pick?"#2d5016":gc>rule.pick?"#dc2626":"#e5e7eb",color:gc===rule.pick||gc>rule.pick?"#fff":"#888"}}>{rule.label} ({gc}/{rule.pick})</span>
+            </div>}
+            {(cn==="사회"||cn==="과학")&&<div style={{padding:"4px 14px",fontSize:11,color:"#888",background:"#fafafa",fontWeight:600}}>▸ {cn}</div>}
+            {courses.map(c=>{
+              const isSel=sel[c.id];
+              const ok=pOk(c.id,sel);
+              const excluded=isExcluded(c.id,sel);
+              // For 3학년 2학기 예술: forced by 1학기 selection
+              const artForced=Object.values(ART_FORCE).includes(c.id)&&Object.entries(ART_FORCE).some(([k,v])=>v===c.id&&sel[k]);
+              const artBlocked=cn==="예술"&&sem==="s2"&&tab==="g3"&&!artForced&&Object.entries(ART_FORCE).some(([k,v])=>sel[k]&&v!==c.id);
+              const dis=(!ok)||excluded||artBlocked||(full&&!isSel&&!artForced);
+              const pt=pTxt(c.id);
+              const exName=EXCLUDES[c.id]&&sel[EXCLUDES[c.id]]?NM[EXCLUDES[c.id]]:null;
+              return(
+                <div key={c.id} onClick={()=>!dis&&!artForced&&toggle(c.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 14px",cursor:dis||artForced?"not-allowed":"pointer",background:isSel?"#edf7e0":dis?"#fafafa":"#fff",opacity:dis?0.5:1,transition:"all 0.15s",borderLeft:isSel?"3px solid #4a8c1c":"3px solid transparent"}}>
+                  <div style={{width:20,height:20,borderRadius:4,flexShrink:0,border:isSel?"2px solid #4a8c1c":"2px solid #ccc",background:isSel?"#4a8c1c":"#fff",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:13,fontWeight:700}}>{isSel&&"✓"}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:isSel?600:400,color:dis&&!isSel?"#aaa":"#333"}}>{c.name}{artForced?" (자동 선택)":""}</div>
+                    {!ok&&pt&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ 선이수: {pt}</div>}
+                    {excluded&&exName&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ 1학기 "{exName}" 선택으로 중복 불가</div>}
+                    {artBlocked&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ 1학기 예술 선택에 의해 제한됨</div>}
+                  </div>
+                  <div style={{fontSize:11,color:"#888",fontWeight:600,flexShrink:0}}>{c.cr}학점</div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+      {(()=>{let el=0;Object.values(gd[sem]).forEach(cs=>cs.forEach(c=>{if(sel[c.id])el+=c.cr}));const rq=sem==="s1"?gd.required.s1cr:gd.required.s2cr;return(
+        <div style={{padding:"10px 14px",background:"#f0f7e6",borderRadius:"0 0 8px 8px",display:"flex",justifyContent:"space-between",fontSize:13,fontWeight:700,color:el===gd.targetElective?"#2d5016":el===0?"#888":"#dc2626"}}>
+          <span>선택 {el}/{gd.targetElective}학점</span><span>총 {rq+el}/{rq+gd.targetElective}학점</span>
+        </div>
+      )})()}
+    </div>
+  );
+
+  const hasAny=Object.values(sel).some(Boolean);
+
+  // Credit summary for review panel
+  const socCr=(g)=>["s1","s2"].reduce((t,s)=>(COURSES[g][s]["사회"]||[]).filter(c=>sel[c.id]).reduce((a,c)=>a+c.cr,t),0);
+  const sciCr=(g)=>["s1","s2"].reduce((t,s)=>(COURSES[g][s]["과학"]||[]).filter(c=>sel[c.id]).reduce((a,c)=>a+c.cr,t),0);
+
+  return(
+    <div style={{fontFamily:"'Pretendard','Noto Sans KR',sans-serif",maxWidth:860,margin:"0 auto",padding:"0 12px 30px",color:"#333"}}>
+      <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet"/>
+      <div style={{textAlign:"center",padding:"24px 0 16px"}}>
+        <h1 style={{fontSize:22,fontWeight:800,color:"#2d5016",margin:0}}>안화고등학교 수강신청 시뮬레이션</h1>
+        <p style={{fontSize:12,color:"#888",margin:"6px 0 0"}}>과목을 선택하면 실시간으로 조건을 검증합니다</p>
+      </div>
+      <div style={{display:"flex",gap:4,marginBottom:12}}>
+        {[{k:"g2",l:"2학년 수강신청"},{k:"g3",l:"3학년 수강신청"}].map(t=>(
+          <button key={t.k} onClick={()=>setTab(t.k)} style={{flex:1,padding:"10px 0",border:"none",borderRadius:8,fontWeight:700,fontSize:14,cursor:"pointer",background:tab===t.k?"#2d5016":"#e8e8e8",color:tab===t.k?"#fff":"#666"}}>{t.l}</button>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:10}}>
+        <Sem sem="s1" label={tab==="g2"?"2학년 1학기":"3학년 1학기"}/>
+        <Sem sem="s2" label={tab==="g2"?"2학년 2학기":"3학년 2학기"}/>
+      </div>
+      {tab==="g3"&&<div style={{marginTop:12}}>
+        <button onClick={()=>setShowG2(!showG2)} style={{width:"100%",padding:"8px",border:"1px solid #d0d0d0",borderRadius:8,background:showG2?"#f0f7e6":"#fafafa",cursor:"pointer",fontSize:12,fontWeight:600,color:"#555"}}>{showG2?"▲":"▼"} 2학년 선택 내역 확인</button>
+        {showG2&&<div style={{padding:14,background:"#fafafa",borderRadius:"0 0 8px 8px",fontSize:12,color:"#555",border:"1px solid #e0e0e0",borderTop:"none"}}>
+          {["s1","s2"].map(sem=>{const ids=[];Object.values(COURSES.g2[sem]).forEach(cs=>cs.forEach(c=>{if(sel[c.id])ids.push(c.id)}));return(
+            <div key={sem} style={{marginBottom:8}}>
+              <div style={{fontWeight:700,color:"#2d5016",marginBottom:4}}>2학년 {sem==="s1"?"1":"2"}학기</div>
+              {ids.length===0?<span style={{color:"#aaa"}}>선택 없음</span>:ids.map(id=>(
+                <span key={id} style={{display:"inline-block",padding:"2px 8px",margin:"2px 4px 2px 0",background:id.includes("_sa")?"#dbeafe":id.includes("_sc")?"#fce4ec":"#f3e5f5",borderRadius:12,fontSize:11}}>{NM[id]}</span>
+              ))}
+            </div>
+          )})}
+          <div style={{marginTop:8,padding:"8px 10px",background:"#e8f5e9",borderRadius:6,fontSize:12}}>
+            <span style={{fontWeight:700,color:"#1b5e20"}}>사회 이수학점:</span> {socCr("g2")}학점&nbsp;&nbsp;|&nbsp;&nbsp;
+            <span style={{fontWeight:700,color:"#1b5e20"}}>과학 이수학점:</span> {sciCr("g2")}학점
+          </div>
+        </div>}
+      </div>}
+      {hasAny&&<div style={{marginTop:16,borderRadius:10,overflow:"hidden",border:"1px solid #e0e0e0"}}>
+        <div style={{padding:"10px 14px",fontWeight:700,fontSize:13,background:vld.err.length>0?"#fef2f2":"#f0fdf4",color:vld.err.length>0?"#991b1b":"#166534",borderBottom:"1px solid #e0e0e0"}}>{vld.err.length>0?"⚠ "+vld.err.length+"개 검증 오류":"✓ 모든 조건 충족"}</div>
+        <div style={{padding:12,background:"#fff"}}>
+          {vld.err.map((e,i)=><div key={"e"+i} style={{padding:"6px 10px",marginBottom:4,borderRadius:6,background:"#fef2f2",color:"#991b1b",fontSize:12,borderLeft:"3px solid #dc2626"}}>❌ {e}</div>)}
+          {vld.warn.map((w,i)=><div key={"w"+i} style={{padding:"6px 10px",marginBottom:4,borderRadius:6,background:"#fffbeb",color:"#92400e",fontSize:12,borderLeft:"3px solid #f59e0b"}}>⚠️ {w}</div>)}
+          {vld.inf.map((f,i)=><div key={"i"+i} style={{padding:"6px 10px",marginBottom:4,borderRadius:6,background:"#f0fdf4",color:"#166534",fontSize:12,borderLeft:"3px solid #22c55e"}}>ℹ️ {f}</div>)}
+        </div>
+      </div>}
+      <button onClick={()=>setSel({})} style={{marginTop:14,width:"100%",padding:10,border:"1px solid #ddd",borderRadius:8,background:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,color:"#888"}}>초기화</button>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
