@@ -19,8 +19,6 @@
 <script type="text/babel">
 const { useState, useMemo } = React;
 
-
-
 const COURSES = {
   g2: {
     s1: {
@@ -165,16 +163,22 @@ const COURSES = {
   },
 };
 
-// Prereqs: string=single, array=OR. Only 2학년 has prereqs now.
+// Prereqs: string=single, array=OR.
 const PREREQS = {
+  // 2학년 선이수
   g2s2_sa1:"g2s1_sa1", g2s2_sa2:"g2s1_sa2", g2s2_sa3:"g2s1_sa3",
-  g2s2_sa4:["g2s1_sa4","g2s1_sa5"], g2s2_sa5:["g2s1_sa4","g2s1_sa5"],
+  g2s2_sa4:"g2s1_sa4",   // 법과 사회 ← 사회와 문화만
+  g2s2_sa5:"g2s1_sa5",   // 경제 ← 정치만
   g2s2_sc1:"g2s1_sc1", g2s2_sc2:"g2s1_sc2", g2s2_sc3:"g2s1_sc3", g2s2_sc4:"g2s1_sc4",
   g2s2_k1:"g2s1_k1", g2s2_k2:"g2s1_k2", g2s2_k3:"g2s1_k3",
   g2s2_k4:"g2s1_k4", g2s2_k5:"g2s1_k5", g2s2_k6:"g2s1_k6",
   g2s2_f1:"g2s1_f1", g2s2_f2:"g2s1_f2", g2s2_f3:"g2s1_f3",
   // 3학년 교과간 prereqs
-  g3s2_x1:"g3s1_x1", g3s2_x2:"g3s1_x2", g3s2_x3:"g3s1_x3", g3s2_x4:"g3s1_x4",
+  g3s2_x1:"g3s1_x1", g3s2_x2:"g3s1_x2",
+  g3s2_x3:["g3s1_x3","g3s1_x5","g3s1_x6"],  // 로봇과 공학세계 ← 창의공학설계 or 미적분Ⅱ or 언어생활과한자
+  g3s2_x4:["g3s1_x4","g3s1_x5","g3s1_x6"],  // 데이터 과학 ← 인공지능기초 or 미적분Ⅱ or 언어생활과한자
+  g3s2_x6:["g3s1_x5","g3s1_x6"],             // 언어생활과한자(2학기) ← 미적분Ⅱ or 언어생활과한자(1학기) (단, 동일과목 중복 제한 적용)
+  g3s2_x7:["g3s1_x5","g3s1_x6"],             // 인간과 심리 ← 미적분Ⅱ or 언어생활과한자
   // 3학년 예술 forced pairing
   g3s2_a1:"g3s1_a1", g3s2_a2:"g3s1_a2",
 };
@@ -216,6 +220,17 @@ function App(){
     if(next[id]&&ART_FORCE[id]){next[ART_FORCE[id]]=true;}
     // If toggling OFF a g3 1학기 art, auto-deselect 2학기 counterpart
     if(!next[id]&&ART_FORCE[id]){next[ART_FORCE[id]]=false;}
+    // If toggling OFF a prereq, auto-deselect dependents that no longer have prereq met
+    if(!next[id]){
+      Object.entries(PREREQS).forEach(([depId, prereq])=>{
+        if(next[depId]){
+          const list=Array.isArray(prereq)?prereq:[prereq];
+          if(!list.some(pid=>next[pid])){
+            next[depId]=false;
+          }
+        }
+      });
+    }
     setSel(next);
   };
   const byCat=(g,s,cat)=>(COURSES[g][s][cat]||[]).filter(c=>sel[c.id]);
@@ -368,7 +383,6 @@ function App(){
     </div>
   );
 }
-
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
