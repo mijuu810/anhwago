@@ -201,6 +201,20 @@ const EXCLUDES = {
 // 3학년 예술 forced: if 1학기 art selected, 2학기 counterpart is REQUIRED
 const ART_FORCE = { g3s1_a1:"g3s2_a1", g3s1_a2:"g3s2_a2" };
 
+// 조건부 제한: condition이 선택된 상태에서 if_selected를 고르면 then_block이 비활성화
+const COND_EXCLUDES = [
+  { condition:"g3s1_x5", if_selected:"g3s1_p9",  then_block:"g3s2_p10" }, // 미적분Ⅱ+음악과미디어(1) → 미술과매체(2) 불가
+  { condition:"g3s1_x5", if_selected:"g3s1_p10", then_block:"g3s2_p9"  }, // 미적분Ⅱ+미술과매체(1) → 음악과미디어(2) 불가
+];
+
+function isCondExcluded(cid,sels){
+  return COND_EXCLUDES.some(r=>r.then_block===cid&&sels[r.condition]&&sels[r.if_selected]);
+}
+function condExTxt(cid,sels){
+  const r=COND_EXCLUDES.find(r=>r.then_block===cid&&sels[r.condition]&&sels[r.if_selected]);
+  return r?(NM[r.condition]+"+"+NM[r.if_selected]+" 선택으로 제한됨"):null;
+}
+
 const NM={};
 Object.values(COURSES).forEach(g=>["s1","s2"].forEach(s=>Object.values(g[s]).forEach(cs=>cs.forEach(c=>{NM[c.id]=c.name}))));
 
@@ -231,6 +245,12 @@ function App(){
         }
       });
     }
+    // Auto-deselect courses blocked by conditional exclusions
+    COND_EXCLUDES.forEach(r=>{
+      if(next[r.condition]&&next[r.if_selected]&&next[r.then_block]){
+        next[r.then_block]=false;
+      }
+    });
     setSel(next);
   };
   const byCat=(g,s,cat)=>(COURSES[g][s][cat]||[]).filter(c=>sel[c.id]);
@@ -302,12 +322,14 @@ function App(){
               const isSel=sel[c.id];
               const ok=pOk(c.id,sel);
               const excluded=isExcluded(c.id,sel);
+              const condEx=isCondExcluded(c.id,sel);
               // For 3학년 2학기 예술: forced by 1학기 selection
               const artForced=Object.values(ART_FORCE).includes(c.id)&&Object.entries(ART_FORCE).some(([k,v])=>v===c.id&&sel[k]);
               const artBlocked=cn==="예술"&&sem==="s2"&&tab==="g3"&&!artForced&&Object.entries(ART_FORCE).some(([k,v])=>sel[k]&&v!==c.id);
-              const dis=(!ok)||excluded||artBlocked||(full&&!isSel&&!artForced);
+              const dis=(!ok)||excluded||condEx||artBlocked||(full&&!isSel&&!artForced);
               const pt=pTxt(c.id);
               const exName=EXCLUDES[c.id]&&sel[EXCLUDES[c.id]]?NM[EXCLUDES[c.id]]:null;
+              const ceTxt=condExTxt(c.id,sel);
               return(
                 <div key={c.id} onClick={()=>!dis&&!artForced&&toggle(c.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 14px",cursor:dis||artForced?"not-allowed":"pointer",background:isSel?"#edf7e0":dis?"#fafafa":"#fff",opacity:dis?0.5:1,transition:"all 0.15s",borderLeft:isSel?"3px solid #4a8c1c":"3px solid transparent"}}>
                   <div style={{width:20,height:20,borderRadius:4,flexShrink:0,border:isSel?"2px solid #4a8c1c":"2px solid #ccc",background:isSel?"#4a8c1c":"#fff",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:13,fontWeight:700}}>{isSel&&"✓"}</div>
@@ -315,6 +337,7 @@ function App(){
                     <div style={{fontSize:13,fontWeight:isSel?600:400,color:dis&&!isSel?"#aaa":"#333"}}>{c.name}{artForced?" (자동 선택)":""}</div>
                     {!ok&&pt&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ 선이수: {pt}</div>}
                     {excluded&&exName&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ 1학기 "{exName}" 선택으로 중복 불가</div>}
+                    {condEx&&ceTxt&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ {ceTxt}</div>}
                     {artBlocked&&<div style={{fontSize:10,color:"#e65100",marginTop:2}}>⚠ 1학기 예술 선택에 의해 제한됨</div>}
                   </div>
                   <div style={{fontSize:11,color:"#888",fontWeight:600,flexShrink:0}}>{c.cr}학점</div>
