@@ -289,13 +289,13 @@ function App(){
     const g2A=g2S.length+g2C.length>0,g3A=g3S.length+g3C.length>0;
     if(g2A&&g2C.length===0&&g2S.length>0){if(g3A&&g3C.length===0)err.push("2학년 사회만 선택 → 3학년 과학 1개 이상 필수");else if(!g3A)warn.push("2학년 사회만 선택 중 → 3학년에서 과학 필수");}
     if(g2A&&g2S.length===0&&g2C.length>0){if(g3A&&g3S.length===0)err.push("2학년 과학만 선택 → 3학년 사회 1개 이상 필수");else if(!g3A)warn.push("2학년 과학만 선택 중 → 3학년에서 사회 필수");}
-    // Credit summary
+    // Credit summary — 2·3학년 통합 사회/과학 각 최소 3학점
     const allSoc=[...byCat("g2","s1","사회"),...byCat("g2","s2","사회"),...byCat("g3","s1","사회"),...byCat("g3","s2","사회")];
     const allSci=[...byCat("g2","s1","과학"),...byCat("g2","s2","과학"),...byCat("g3","s1","과학"),...byCat("g3","s2","과학")];
     const socCr=allSoc.reduce((a,c)=>a+c.cr,0),sciCr=allSci.reduce((a,c)=>a+c.cr,0);
-    if(socCr>0||sciCr>0)inf.push("사회 이수학점: "+socCr+"학점 / 과학 이수학점: "+sciCr+"학점 (각 8학점 이상 필수)");
-    if(socCr>0&&socCr<8&&(g2A||g3A))warn.push("사회 이수학점 부족: 현재 "+socCr+"/8학점");
-    if(sciCr>0&&sciCr<8&&(g2A||g3A))warn.push("과학 이수학점 부족: 현재 "+sciCr+"/8학점");
+    if(socCr>0||sciCr>0)inf.push("사회 이수학점: "+socCr+"학점 / 과학 이수학점: "+sciCr+"학점 (각 최소 3학점)");
+    if(socCr>0&&socCr<3&&(g2A||g3A))warn.push("사회 이수학점 부족: 현재 "+socCr+"/3학점");
+    if(sciCr>0&&sciCr<3&&(g2A||g3A))warn.push("과학 이수학점 부족: 현재 "+sciCr+"/3학점");
     return {err,warn,inf};
   },[sel]);
 
